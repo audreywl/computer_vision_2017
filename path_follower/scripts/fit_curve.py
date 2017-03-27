@@ -1,6 +1,7 @@
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
+import sympy as sp
 from numpy.linalg import eig, inv
 from scipy.spatial.distance import cdist
 from pylab import *
@@ -52,6 +53,21 @@ class Ellipse(object):
 	    axis_b_denom=(self.b*self.b-self.a*self.c)*( (self.a-self.c)*np.sqrt(1+4*self.b*self.b/((self.a-self.c)*(self.a-self.c)))-(self.c+self.a))
 	    self.axis_a=np.sqrt(num/axis_a_denom)
 	    self.axis_b=np.sqrt(num/axis_b_denom)
+
+	def parametric(self, current_time):
+		#x = sp.Symbol("x")
+		#y = sp.Symbol("y")
+		t = sp.Symbol("t")
+		x_of_t = self.x0+self.axis_a*sp.cos(t)*sp.cos(self.angle)-self.axis_b*sp.sin(t)*sp.sin(self.angle)
+		y_of_t = self.y0+self.axis_a*sp.cos(t)*sp.sin(self.angle)+self.axis_b*sp.sin(t)*sp.cos(self.angle)
+		x_curvature = diff(x_of_t, t, 2)
+		y_curvature = diff(y_of_t, t, 2)
+		return (x_curvature.subs(t, current_time), y_curvature.subs(t, current_time))
+
+	def tangent(self, x, y):
+		"""returns the tangent vector at a particular point on the ellipse"""
+
+
 
 
 class FitCurve(object):
