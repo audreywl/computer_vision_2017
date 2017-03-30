@@ -75,7 +75,9 @@ class FitCurve(object):
         self.cv_image = None                        # the latest image from the camera
         self.binary_image = None
         self.bridge = CvBridge()                    # used to convert ROS messages to OpenCV
-        self.hsv_lb = np.array([200, 200, 200])           # hsv lower bound
+        # self.hsv_lb = np.array([85, 57, 80])           # hsv lower bound
+        # self.hsv_ub = np.array([214, 255, 255])     # hsv upper bound
+        self.hsv_lb = np.array([0, 0, 0])           # hsv lower bound
         self.hsv_ub = np.array([255, 255, 255])     # hsv upper bound
 
         cv2.namedWindow('video_window')
@@ -113,21 +115,28 @@ class FitCurve(object):
         """ set value upper bound """
         self.hsv_ub[2] = val
 
+    # def find_points(self,img):
+    #     self.binary_image = cv2.inRange(self.cv_image, self.hsv_lb, self.hsv_ub) # _, self.good_thresh = cv2.threshold(self.cv_image, self.hsv_lb[2], self.hsv_ub[2], cv2.THRESH_BINARY)
+    
     def find_whiteboard(self,img):
         self.cv_image = img
         self.hsv_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2HSV)
         self.gray_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2GRAY)
         self.binary_image = cv2.inRange(self.cv_image, self.hsv_lb, self.hsv_ub)
         if not self.binary_image is None:
-            cv2.imshow('video_window',self.binary_image)
+            self.contours,_ = cv2.findContours(self.binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) #we do contours to make sure subsequent points are neighbors -
+            # CV_RETR_EXTERNAL because we only want one contour, and CV_CHAIN_APPROX_NONE b/c we don't want to compress by finding extrema, we want all the points
+            # print type(self.contours)
+            
+            cv2.imshow('threshold_image',self.binary_image)
             cv2.waitKey(5)
 
-    def find_points(self,img):
-        self.binary_image = cv2.inRange(self.cv_image, self.hsv_lb, self.hsv_ub) # _, self.good_thresh = cv2.threshold(self.cv_image, self.hsv_lb[2], self.hsv_ub[2], cv2.THRESH_BINARY)
-
-        self.hierarchy,self.contours,_ = cv2.findContours(self.binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) #we do contours to make sure subsequent points are neighbors -
-        #CV_RETR_EXTERNAL because we only want one contour, and CV_CHAIN_APPROX_NONE b/c we don't want to compress by finding extrema, we want all the points
-        cv2.drawContours(img, self.contours, -1, (0,255,0), 3)
+            
+            cv2.drawContours(self.cv_image, self.contours, -1, (0,255,0), 5)
+            cv2.imshow('video_window',self.cv_image)
+            print self.contours
+            cv2.waitKey(5)
+            
 
     def find_curve(self,img):
         pass
@@ -136,7 +145,7 @@ if __name__ == '__main__':
 
     node = FitCurve()
     img = cv2.imread(img,cv2.IMREAD_GRAYSCALE)
-    # node.find_whiteboard(img)
+    print node.find_whiteboard(img)
     print node.find_points(img)
 
     arc = 0.8

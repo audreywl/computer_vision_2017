@@ -35,7 +35,6 @@ class Follower(object):
         
         self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10) #publish neato velocities
         
-
     def drive(self):
         """function that executes driving state"""
         pass
@@ -44,7 +43,7 @@ class Follower(object):
         """function that executes analyzing state"""
         self.cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
         self.fit.find_whiteboard(self.cv_image)
-        self.fit.find_points(self.cv_image)
+        # self.fit.find_points(self.cv_image)
 
     def wait(self):
         """function that executes waiting state"""
