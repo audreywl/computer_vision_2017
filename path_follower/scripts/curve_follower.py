@@ -16,58 +16,60 @@ from geometry_msgs.msg import Twist, Vector3, Pose
 from tf.transformations import euler_from_quaternion, rotation_matrix, quaternion_from_matrix
 
 class Follower(object):
-    """object for the ROS node that follows"""
-    def __init__(self):
-        rospy.init_node('curve_follower')
-        # self.arg = arg
-        self.driving = False
-        self.waiting = False
-        self.analyzing = True
-        self.process_bump = False
-        self.moves = Twist(linear=Vector3(x = 0.0), angular=Vector3(z = 0.0)) #velocities to publish
-        self.r = rospy.Rate(10) #Execute at 10 Hz
-        self.bridge = CvBridge()                    # used to convert ROS messages to OpenCV
-        self.fit = FitCurve()
-        # self.ellipse = Ellipse(3, 5)
-        
-        rospy.Subscriber('/bump', Bump, self.fucking_stop)
-        rospy.Subscriber('/camera/image_raw', Image, self.analyze)
-        
-        self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10) #publish neato velocities
-        
+	"""object for the ROS node that follows"""
+	def __init__(self):
+		rospy.init_node('curve_follower')
+		# self.arg = arg
+		self.driving = False
+		self.waiting = False
+		self.analyzing = True
+		self.process_bump = False
+		self.moves = Twist(linear=Vector3(x = 0.0), angular=Vector3(z = 0.0)) #velocities to publish
+		self.r = rospy.Rate(10) #Execute at 10 Hz
+		self.bridge = CvBridge()                    # used to convert ROS messages to OpenCV
+		self.fit = FitCurve()
+		# self.ellipse = Ellipse(3, 5)
+		
+		rospy.Subscriber('/bump', Bump, self.fucking_stop)
+		rospy.Subscriber('/camera/image_raw', Image, self.analyze)
+		
+		self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10) #publish neato velocities
+	def drive(self):
+		"""function that executes driving state"""
+		pass
 
-    def drive(self):
-        """function that executes driving state"""
-        pass
+	def analyze(self,msg):
+		"""function that executes analyzing state"""
+		self.cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+		self.fit.find_whiteboard(self.cv_image)
+		self.fit.find_points(self.cv_image)
 
-    def analyze(self,msg):
-        """function that executes analyzing state"""
-        self.cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
-        self.fit.find_whiteboard(self.cv_image)
-        self.fit.find_points(self.cv_image)
+	def wait(self):
+		"""function that executes waiting state"""
+		pass
 
-    def wait(self):
-        """function that executes waiting state"""
-        pass
+	def fucking_stop(self):
+		"""emergency stop function"""
+		print 'STOP!'
+		self.moves.linear.x = 0.0
+		self.moves.angular.z = 0.0
+		self.pub.publish(self.moves)
 
-    def fucking_stop(self):
-        """emergency stop function"""
-        print 'STOP!'
-        self.moves.linear.x = 0.0
-        self.moves.angular.z = 0.0
-        self.pub.publish(self.moves)
-
-    def run(self):
-        rospy.on_shutdown(self.fucking_stop)
-        while not rospy.is_shutdown():
-            if self.driving:
-                self.drive
-            elif self.analyzing:
-                self.analyze
-            else:
-                self.wait
-            self.r.sleep()
+	def run(self):
+		rospy.on_shutdown(self.fucking_stop)
+		while not rospy.is_shutdown():
+			"""
+			if self.driving:
+				self.drive
+			elif self.analyzing:
+				self.analyze
+			else:
+				self.wait
+			"""
+			print type(self.fit.binary_image)
+			self.fit.update_img()
+			self.r.sleep()
 
 if __name__ == '__main__':
-    follower = Follower()
-    follower.run()
+	follower = Follower()
+	follower.run()

@@ -77,66 +77,69 @@ class Ellipse(object):
 		return (linear_velocity.evalf(), angular_velocity[2].evalf())
 
 class FitCurve(object):
-    def __init__(self):
-        """ Initialize the street sign reocgnizer """
-        self.cv_image = None                        # the latest image from the camera
-        self.binary_image = None
-        self.bridge = CvBridge()                    # used to convert ROS messages to OpenCV
-        self.hsv_lb = np.array([200, 200, 200])           # hsv lower bound
-        self.hsv_ub = np.array([255, 255, 255])     # hsv upper bound
-
+	def __init__(self):
+		""" Initialize the street sign reocgnizer """
+		self.cv_image = None                        # the latest image from the camera
+		self.binary_image = None
+		self.bridge = CvBridge()                    # used to convert ROS messages to OpenCV
+		self.hsv_lb = np.array([200, 200, 200])           # hsv lower bound
+		self.hsv_ub = np.array([255, 255, 255])     # hsv upper bound
 		cv2.namedWindow('video_window')
-		cv2.namedWindow('threshold_image')
-        cv2.createTrackbar('H lb', 'threshold_image', 0, 255, self.set_h_lb)
-        cv2.createTrackbar('S lb', 'threshold_image', 0, 255, self.set_s_lb)
-        cv2.createTrackbar('V lb', 'threshold_image', 0, 255, self.set_v_lb)
-        
-        cv2.createTrackbar('H ub', 'threshold_image', 0, 255, self.set_h_ub)
-        cv2.createTrackbar('S ub', 'threshold_image', 0, 255, self.set_s_ub)
-        cv2.createTrackbar('V ub', 'threshold_image', 0, 255, self.set_v_ub)
+		# cv2.namedWindow('threshold_image')
+		# cv2.createTrackbar('H lb', 'threshold_image', 0, 255, self.set_h_lb)
+		# cv2.createTrackbar('S lb', 'threshold_image', 0, 255, self.set_s_lb)
+		# cv2.createTrackbar('V lb', 'threshold_image', 0, 255, self.set_v_lb)
+		
+		# cv2.createTrackbar('H ub', 'threshold_image', 0, 255, self.set_h_ub)
+		# cv2.createTrackbar('S ub', 'threshold_image', 0, 255, self.set_s_ub)
+		# cv2.createTrackbar('V ub', 'threshold_image', 0, 255, self.set_v_ub)
 
-    def set_h_lb(self, val):
-        """ set hue lower bound """
-        self.hsv_lb[0] = val
+	def set_h_lb(self, val):
+		""" set hue lower bound """
+		self.hsv_lb[0] = val
 
-    def set_s_lb(self, val):
-        """ set saturation lower bound """
-        self.hsv_lb[1] = val
+	def set_s_lb(self, val):
+		""" set saturation lower bound """
+		self.hsv_lb[1] = val
 
-    def set_v_lb(self, val):
-        """ set value lower bound """
-        self.hsv_lb[2] = val
+	def set_v_lb(self, val):
+		""" set value lower bound """
+		self.hsv_lb[2] = val
 
-    def set_h_ub(self, val):
-        """ set hue upper bound """
-        self.hsv_ub[0] = val
+	def set_h_ub(self, val):
+		""" set hue upper bound """
+		self.hsv_ub[0] = val
 
-    def set_s_ub(self, val):
-        """ set saturation upper bound """
-        self.hsv_ub[1] = val
+	def set_s_ub(self, val):
+		""" set saturation upper bound """
+		self.hsv_ub[1] = val
 
-    def set_v_ub(self, val):
-        """ set value upper bound """
-        self.hsv_ub[2] = val
+	def set_v_ub(self, val):
+		""" set value upper bound """
+		self.hsv_ub[2] = val
 
-    def find_whiteboard(self,img):
-        self.cv_image = img
-        self.hsv_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2HSV)
-        self.gray_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2GRAY)
-        self.binary_image = cv2.inRange(self.cv_image, self.hsv_lb, self.hsv_ub)
-        if not self.binary_image is None:
-            cv2.imshow('video_window',self.binary_image)
-            cv2.waitKey(5)
+	def find_whiteboard(self,img):
+		self.cv_image = img
+		self.hsv_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2HSV)
+		self.gray_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2GRAY)
+		self.binary_image = cv2.inRange(self.cv_image, self.hsv_lb, self.hsv_ub)
+		
+	def find_points(self,img):
+		self.binary_image = cv2.inRange(self.cv_image, self.hsv_lb, self.hsv_ub) # _, self.good_thresh = cv2.threshold(self.cv_image, self.hsv_lb[2], self.hsv_ub[2], cv2.THRESH_BINARY)
 
-    def find_points(self,img):
-        self.binary_image = cv2.inRange(self.cv_image, self.hsv_lb, self.hsv_ub) # _, self.good_thresh = cv2.threshold(self.cv_image, self.hsv_lb[2], self.hsv_ub[2], cv2.THRESH_BINARY)
-
-        self.hierarchy,self.contours,_ = cv2.findContours(self.binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) #we do contours to make sure subsequent points are neighbors -
-        #CV_RETR_EXTERNAL because we only want one contour, and CV_CHAIN_APPROX_NONE b/c we don't want to compress by finding extrema, we want all the points
-        cv2.drawContours(img, self.contours, -1, (0,255,0), 3)
+		self.hierarchy,self.contours,_ = cv2.findContours(self.binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) #we do contours to make sure subsequent points are neighbors -
+		#CV_RETR_EXTERNAL because we only want one contour, and CV_CHAIN_APPROX_NONE b/c we don't want to compress by finding extrema, we want all the points
+		cv2.drawContours(img, self.contours, -1, (0,255,0), 3)
 
 	def find_curve(self,img):
 		pass
+
+	def update_img(self):
+		if not self.binary_image is None:
+			cv2.imshow('video_window',self.binary_image)
+			cv2.waitKey(5)
+
+
 
 if __name__ == '__main__':
 
