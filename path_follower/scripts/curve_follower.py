@@ -16,6 +16,11 @@ from geometry_msgs.msg import Twist, Vector3, Pose
 from tf.transformations import euler_from_quaternion, rotation_matrix, quaternion_from_matrix
 
 class Follower(object):
+=======	DRIVING = "driving"
+    ANALYZING = "analyzing"
+    STOPPED = "stopped"
+    WAITING ="waiting"
+
 	"""object for the ROS node that follows"""
 	def __init__(self):
 		rospy.init_node('curve_follower')
@@ -24,7 +29,7 @@ class Follower(object):
 		self.waiting = False
 		self.analyzing = True
 
-		self.process_bump = False
+		self.bumped = False
 		self.moves = Twist(linear=Vector3(x = 0.0), angular=Vector3(z = 0.0)) #velocities to publish
 		self.r = rospy.Rate(10) #Execute at 10 Hz
 		self.bridge = CvBridge()                    # used to convert ROS messages to OpenCV
@@ -51,22 +56,55 @@ class Follower(object):
 		"""function that executes waiting state"""
 		pass
 
+	# def bump(self, msg):
+ #        self.state_pub.publish(String(self.state))
+ #        if (msg.leftFront or
+ #            msg.rightFront or
+ #            msg.rightSide or
+ #            msg.leftSide):
+ #            self.bumped = True
+ #            self.fucking_stop
+
 	def fucking_stop(self):
 		"""emergency stop function"""
-		print 'STOP!'
-		self.moves.linear.x = 0.0
-		self.moves.angular.z = 0.0
-		self.pub.publish(self.moves)
+		if (msg.leftFront or
+            msg.rightFront or
+            msg.rightSide or
+            msg.leftSide):
+            self.bumped = True
+            # self.fucking_stop
+			print 'STOP!'
+			self.moves.linear.x = 0.0
+			self.moves.angular.z = 0.0
+			self.pub.publish(self.moves)
+			return self.state == Follower.WAITING
+
+	# def run(self):
+	# 	#rospy.on_shutdown(self.fucking_stop)
+	# 	while not rospy.is_shutdown():
+	# 		if self.driving:
+	# 			self.drive
+	# 		elif self.analyzing:
+	# 			self.analyze
+	# 		else:
+	# 			self.wait
+	# 		self.fit.update_img()
+	# 		self.r.sleep()
 
 	def run(self):
 		#rospy.on_shutdown(self.fucking_stop)
 		while not rospy.is_shutdown():
 			if self.driving:
-				self.drive
-			elif self.analyzing:
-				self.analyze
-			else:
-				self.wait
+			if self.state == Follower.DRIVE:
+                self.state = self.drive()
+            elif self.state == Follower.ANALYZE:
+                self.state = self.analyze()
+            # elif self.state == Follower.STOPPED:
+            #     self.state = self.fucking_stop()
+            elif self.state == Follower.WAITING:
+                self.state = self.wait()
+            else:
+                print "invalid state!!!" # note this shouldn't happen
 			self.fit.update_img()
 			self.r.sleep()
 
