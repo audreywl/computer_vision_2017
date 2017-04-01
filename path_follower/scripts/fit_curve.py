@@ -28,6 +28,10 @@ class Ellipse(object):
 		self.angle_of_rotation()
 		self.axis_length()
 		self.parametric()
+		print 'center',self.x0, self.y0
+		print 'angle:',self.angle
+		print  'axis a:', self.axis_a
+		print 'axis_b:', self.axis_b
 
 	def center(self):
 		denom = self.b*self.b-self.a*self.c
@@ -86,7 +90,7 @@ class FitCurve(object):
 		# self.hsv_lb = np.array([85, 57, 80])        # hsv lower bound
 		# self.hsv_ub = np.array([214, 255, 255])     # hsv upper bound
 		self.hsv_lb = np.array([0, 0, 0])           # hsv lower bound
-		self.hsv_ub = np.array([255, 255, 255])     # hsv upper bound
+		self.hsv_ub = np.array([245, 245, 245])     # hsv upper bound
 
 		cv2.namedWindow('video_window')
 		cv2.namedWindow('threshold_image')
@@ -131,23 +135,26 @@ class FitCurve(object):
 		if not self.binary_image is None:
 			_, self.contours,_ = cv2.findContours(self.binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) #we do contours to make sure subsequent points are neighbors -
 			# CV_RETR_EXTERNAL because we only want one contour, and CV_CHAIN_APPROX_NONE b/c we don't want to compress by finding extrema, we want all the points
+
 			self.longest_contour_index, self.longest_contour = max(enumerate(self.contours), key=(lambda x: len(x[1])))
 			cv2.drawContours(self.cv_image, self.contours, self.longest_contour_index, (0,255,0), 1)
+			
 
-			#leftmost_point_index,_ = min(enumerate(self.longest_contour), key=(lambda x: x[1][1]))
-			#print leftmost_point_index
+			self.longest_contour = np.squeeze(self.longest_contour)
+			#print self.longest_contour
 
+			leftmost_point_index,leftmost_point = min(enumerate(self.longest_contour), key=(lambda x: x[1][0]))
+			#print leftmost_point
 
-			cv2.drawContours(self.cv_image, self.contours[self.longest_contour_index][0:(len(self.contours[self.longest_contour_index])/2)], -1, (0,0,255), 1)
+			#print self.longest_contour
 
+			double_countour = np.append(self.longest_contour,self.longest_contour, axis=0)
 
-			#cv2.imshow('video_window',self.cv_image)
-			#print self.contours
-			#cv2.waitKey(5)
+			#print double_countour
 
+			self.line_points = double_countour[leftmost_point_index:leftmost_point_index+(len(self.longest_contour)/2)]
 
-	def find_curve(self,img):
-		pass
+			cv2.drawContours(self.cv_image, self.contours[self.longest_contour_index][leftmost_point_index:leftmost_point_index+(len(self.longest_contour)/2)], -1, (0,0,255), 1)
 
 	def update_img(self):
 		if not self.binary_image is None:
@@ -155,20 +162,45 @@ class FitCurve(object):
 			cv2.imshow('video_window',self.cv_image)
 			cv2.waitKey(5)
 
-
+	def find_ellipses(self):
+		chunk_number = 20
+		chunk_size = len(self.line_points)/chunk_number
+		#print type(self.line_points)
+		#print self.line_points
+		#print self.line_points[:,0]
+		self.curve_chunks = []
+		self.ellipses = []
+		for i in range(0,len(self.line_points), chunk_size):
+			try:
+				current_chunk = self.line_points[i:i+chunk_size]
+				self.curve_chunks.append(current_chunk)
+			except IndexError as e:
+				current_chunk = self.line_points[i:self.line_points[-1]]
+				self.curve_chunks.append(current_chunk)
+				#raise e
+			print current_chunk[:,0]
+			print current_chunk[:,1]
+			self.ellipses.append(Ellipse(current_chunk[:,0], current_chunk[:,1]))
 
 if __name__ == '__main__':
-
 
 	#node = FitCurve()
 	#img = cv2.imread(img,cv2.IMREAD_GRAYSCALE)
 	# node.find_whiteboard(img)
 	#print node.find_points(img)
+	x = np.array([305, 306, 306, 307, 308, 308, 309, 309, 310, 310, 311, 311, 312, 313, 313, 314, 314, 315, 316, 316, 317, 317, 318, 319, 319, 320, 320, 321, 322, 322, 323, 324, 324, 325, 326, 326, 327, 328, 328])
+	y = np.array([221, 220, 219, 218, 217, 216, 215, 214, 213, 212, 211, 210, 209, 208, 207, 206, 205, 204, 203, 202, 201, 200, 199, 198, 197, 196, 195, 194, 193, 192, 191, 190, 189, 188, 187, 186, 185, 184, 183])
+	for i in range(0,len(x)):
+		x[i] = float(x[i])
+		y[i] = float(y[i])
+	#print type(x)
 
 	arc = 0.8
 	R = np.arange(0,arc*np.pi, 0.01)
-	x = 1.5*np.cos(R) + 2 + 0.1*np.random.rand(len(R))
-	y = np.sin(R) + 1. + 0.1*np.random.rand(len(R))
+	x2 = 1.5*np.cos(R) + 2 + 0.1*np.random.rand(len(R))
+	y2 = np.sin(R) + 1. + 0.1*np.random.rand(len(R))
+	print x2
+	print y2
 	approx_ellipse = Ellipse(x,y)
 	print approx_ellipse.get_velocities(3.000045)
 	#xx = approx_ellipse.x0 + approx_ellipse.axis_a/2*np.cos(R)*np.cos(approx_ellipse.angle) - approx_ellipse.axis_b/2*np.sin(R)*np.sin(approx_ellipse.angle)

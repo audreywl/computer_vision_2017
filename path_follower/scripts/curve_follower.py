@@ -26,7 +26,7 @@ class Follower(object):
 
 		self.process_bump = False
 		self.moves = Twist(linear=Vector3(x = 0.0), angular=Vector3(z = 0.0)) #velocities to publish
-		self.r = rospy.Rate(10) #Execute at 10 Hz
+		self.r = rospy.Rate(1) #Execute at 10 Hz
 		self.bridge = CvBridge()                    # used to convert ROS messages to OpenCV
 		self.fit = FitCurve()
 		
@@ -43,6 +43,7 @@ class Follower(object):
 		"""function that executes analyzing state"""
 		self.cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
 		self.fit.find_whiteboard(self.cv_image)
+		self.fit.find_ellipses()
 		
 		#print self.fit.contours
 		# self.fit.find_points(self.cv_image)
