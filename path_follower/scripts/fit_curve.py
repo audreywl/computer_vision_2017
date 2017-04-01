@@ -77,23 +77,23 @@ class Ellipse(object):
 		return (linear_velocity.evalf(), angular_velocity[2].evalf())
 
 class FitCurve(object):
-
 	def __init__(self):
 		""" Initialize the street sign reocgnizer """
 		self.cv_image = None                        # the latest image from the camera
 		self.binary_image = None
 		self.bridge = CvBridge()                    # used to convert ROS messages to OpenCV
-		# self.hsv_lb = np.array([85, 57, 80])           # hsv lower bound
+
+		# self.hsv_lb = np.array([85, 57, 80])        # hsv lower bound
 		# self.hsv_ub = np.array([214, 255, 255])     # hsv upper bound
 		self.hsv_lb = np.array([0, 0, 0])           # hsv lower bound
-		self.hsv_ub = np.array([245, 245, 245])     # hsv upper bound
+		self.hsv_ub = np.array([255, 255, 255])     # hsv upper bound
 
 		cv2.namedWindow('video_window')
 		cv2.namedWindow('threshold_image')
 		cv2.createTrackbar('H lb', 'threshold_image', 0, 255, self.set_h_lb)
 		cv2.createTrackbar('S lb', 'threshold_image', 0, 255, self.set_s_lb)
 		cv2.createTrackbar('V lb', 'threshold_image', 0, 255, self.set_v_lb)
-		
+
 		cv2.createTrackbar('H ub', 'threshold_image', 245, 255, self.set_h_ub)
 		cv2.createTrackbar('S ub', 'threshold_image', 245, 255, self.set_s_ub)
 		cv2.createTrackbar('V ub', 'threshold_image', 245, 255, self.set_v_ub)
@@ -122,8 +122,6 @@ class FitCurve(object):
 		""" set value upper bound """
 		self.hsv_ub[2] = val
 
-	# def find_points(self,img):
-	#     self.binary_image = cv2.inRange(self.cv_image, self.hsv_lb, self.hsv_ub) # _, self.good_thresh = cv2.threshold(self.cv_image, self.hsv_lb[2], self.hsv_ub[2], cv2.THRESH_BINARY)
 	
 	def find_whiteboard(self,img):
 		self.cv_image = img
@@ -146,6 +144,7 @@ class FitCurve(object):
 			#cv2.imshow('video_window',self.cv_image)
 			#print self.contours
 			#cv2.waitKey(5)
+
 
 	def find_curve(self,img):
 		pass
