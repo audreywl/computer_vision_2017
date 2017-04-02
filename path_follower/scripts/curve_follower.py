@@ -43,10 +43,9 @@ class Follower(object):
 		"""function that executes analyzing state"""
 		self.cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
 		self.fit.find_whiteboard(self.cv_image)
-		self.fit.find_ellipses()
-		
-		#print self.fit.contours
-		# self.fit.find_points(self.cv_image)
+		self.fit.find_multiple_ellipses()
+		self.fit.plot_curve()
+		#self.fit.find_ellipse()
 
 	def wait(self):
 		"""function that executes waiting state"""
