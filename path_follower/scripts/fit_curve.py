@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from tempfile import TemporaryFile
 
 outfile = TemporaryFile()
-plt.ion()
+
 """ This is a script takes information from open_cv and does parameterizing
 math to follow the path """
 
@@ -199,12 +199,12 @@ class FitCurve(object):
 	def plot_curve(self):
 		if not self.binary_image is None:
 			plt.cla()
-			plt.plot(self.line_points[:,0],self.line_points[:,1])
-			chunk = 3
-			plt.plot(self.curve_chunks[chunk][:,0],self.curve_chunks[chunk][:,1],'r')
+			chunk = 1
 			np.save(outfile, self.curve_chunks[chunk])
 			approx_ellipse = Ellipse(self.curve_chunks[chunk][:,0], self.curve_chunks[chunk][:,1])
 			approx_ellipse.print_properties()
+			plt.plot(self.line_points[:,0],self.line_points[:,1])
+			plt.plot(self.curve_chunks[chunk][:,0],self.curve_chunks[chunk][:,1],'r')
 			plt.pause(.1)
 
 

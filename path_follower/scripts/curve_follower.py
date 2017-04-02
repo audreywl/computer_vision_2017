@@ -14,6 +14,7 @@ import math
 from fit_curve import FitCurve, Ellipse
 from geometry_msgs.msg import Twist, Vector3, Pose
 from tf.transformations import euler_from_quaternion, rotation_matrix, quaternion_from_matrix
+import matplotlib.pyplot as plt
 
 class Follower(object):
 	"""object for the ROS node that follows"""
@@ -27,14 +28,13 @@ class Follower(object):
 		# self.arg = arg
 		self.driving = False
 		self.waiting = False
-		self.analyzing = False
+		self.analyzing = True
 		self.bumped = True
 
 		self.moves = Twist(linear=Vector3(x = 0.0), angular=Vector3(z = 0.0)) #velocities to publish
 		self.r = rospy.Rate(1) #Execute at 10 Hz
 		self.bridge = CvBridge()                    # used to convert ROS messages to OpenCV
 		self.fit = FitCurve()
-		self.ellipse = Ellipse()
 		
 		rospy.Subscriber('/bump', Bump, self.bump)
 		rospy.Subscriber('/camera/image_raw', Image, self.analyze)
@@ -46,42 +46,47 @@ class Follower(object):
 		"""function that executes driving state"""
 		self.driving = True
 		# self.max_min = [4.5,-1]
-		for i in self.ellipses:
-			self.moves.linear.x,self.moves.angular.z = self.ellipse.get_velocities(i)
-			self.pub.publish(self.moves)
-			self.pos = [msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.orientation.z]
-			if self.pos[0] < 0 or self.pos[1] < 0 or self.pos[0] > 4 self.pos[1] < 4:
-				self.waiting = True
-				self.fucking_stop()
+		self.moves.linear.x,self.moves.angular.z = self.fit.approx_ellipse.get_velocities(i)
+		self.pub.publish(self.moves)
+		self.pos = [msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.orientation.z]
+		if self.pos[0] < 0 or self.pos[1] < 0 or self.pos[0] > 4 or self.pos[1] < 4:
+			self.waiting = True
+			self.fucking_stop()
 
 	def analyze(self,msg):
 		"""function that executes analyzing state"""
 		self.cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
 		self.fit.find_whiteboard(self.cv_image)
-		#self.ellipses = self.fit.find_ellipse()
-		self.ellipses = self.fit.find_multiple_ellipses()
-		if not self.ellipses is None:
-			self.analyzing = False
-			self.drive()
+		
+		try:
+			#self.ellipses = self.fit.find_ellipse()
+			self.ellipses = self.fit.find_multiple_ellipses()
+		except ValueError as e:
+			print e
+		# else:
+		# 	self.analyzing = False
+		# 	self.driving = True
+		plt.ion()
 		self.fit.plot_curve()
 
 	def wait(self):
 		"""function that executes waiting state"""
-		self.time = header.stamp.sec
-		self.STAR_time =  
+		pass
+		# self.time = header.stamp.sec
+		# self.STAR_time =  
 
-		if "time passed since last signal" > "1 minute":
+		# if "time passed since last signal" > "1 minute":
 					
 
 	def bump(self, msg):
-        self.state_pub.publish(String(self.state))
-        if (msg.leftFront or
-            msg.rightFront or
-            msg.rightSide or
-            msg.leftSide):
-            self.bumped = True
-            self.wait = True
-            self.fucking_stop()
+		self.state_pub.publish(String(self.state))
+		if (msg.leftFront or
+			msg.rightFront or
+			msg.rightSide or
+			msg.leftSide):
+			self.bumped = True
+			self.wait = True
+			self.fucking_stop()
 
 	def fucking_stop(self):
 		"""emergency stop function"""
