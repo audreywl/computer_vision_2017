@@ -28,15 +28,10 @@ class Follower(object):
 		rospy.init_node('curve_follower')
 		# self.arg = arg
 		self.driving = False
-<<<<<<< HEAD
 		self.waiting = False
 		self.analyzing = True
 		self.has_analyzed = False
 		self.bumped = True
-=======
-		# self.waiting = True
-		self.analyzing = False
->>>>>>> 436601230b8a59f85f3d6f7f6755c7ff5ce42606
 
 		self.moves = Twist(linear=Vector3(x = 0.0), angular=Vector3(z = 0.0)) #velocities to publish
 		self.r = rospy.Rate(10) #Execute at 10 Hz
@@ -45,18 +40,12 @@ class Follower(object):
 		
 		rospy.Subscriber('/bump', Bump, self.bump)
 		rospy.Subscriber('/camera/image_raw', Image, self.analyze)
-<<<<<<< HEAD
 		rospy.Subscriber('/STAR_pose', PoseStamped, self.drive)
-=======
-		rospy.Subscriber('/STAR_pose', Pose, self.wait)
-		rospy.Subscriber('/STAR_pose', Pose, self.drive)
->>>>>>> 436601230b8a59f85f3d6f7f6755c7ff5ce42606
 		
 		self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10) #publish neato velocities
 		
 	def drive(self,msg):
 		"""function that executes driving state"""
-<<<<<<< HEAD
 		self.driving = True
 		self.analyzing = False
 		self.waiting = False
@@ -69,16 +58,6 @@ class Follower(object):
 			if self.pos[0] < 0 or self.pos[1] < 0 or self.pos[0] > 4 or self.pos[1] > 4:
 				self.driving = False
 				self.waiting = True
-=======
-		# self.max_min = [4.5,-1]
-		if self.ellipses is not None:
-			self.moves.linear.x,self.moves.angular.z = self.fit.approx_ellipse.get_velocities(i)
-			self.pub.publish(self.moves)
-			self.pos = [msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.orientation.z]
-			if self.pos[0] < 0 or self.pos[1] < 0 or self.pos[0] > 4 or self.pos[1] < 4:
-				self.driving = False
-				# self.waiting = True
->>>>>>> 436601230b8a59f85f3d6f7f6755c7ff5ce42606
 				self.fucking_stop()
 
 	def analyze(self,msg):
@@ -118,10 +97,6 @@ class Follower(object):
 					
 
 	def bump(self, msg):
-<<<<<<< HEAD
-		#self.state_pub.publish(String(self.state))
-=======
->>>>>>> 436601230b8a59f85f3d6f7f6755c7ff5ce42606
 		if (msg.leftFront or
 			msg.rightFront or
 			msg.rightSide or
@@ -134,13 +109,9 @@ class Follower(object):
 		self.moves.linear.x = 0.0
 		self.moves.angular.z = 0.0
 		self.pub.publish(self.moves)
-<<<<<<< HEAD
 		# if self.waiting == True:
 		# 	self.wait()
 		sys.exit(0)
-=======
-		# self.waiting = True
->>>>>>> 436601230b8a59f85f3d6f7f6755c7ff5ce42606
 
 	def run(self):
 		rospy.on_shutdown(self.fucking_stop)
