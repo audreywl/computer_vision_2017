@@ -36,7 +36,7 @@ class Ellipse(object):
 		self.parametric()
 
 	def check_validity(self):
-		if isinstance(self.x0, complex) or isinstance(self.x0, complex) or isnan(self.axis_a) or isnan(self.axis_b):
+		if isinstance(self.x0, complex) or isinstance(self.y0, complex) or isnan(self.axis_a) or isnan(self.axis_b):
 			raise TypeError("An ellipse could not be fit to the path")
 
 	def print_properties(self):
@@ -149,7 +149,7 @@ class FitCurve(object):
 		self.gray_image = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2GRAY)
 		self.binary_image = cv2.inRange(self.cv_image, self.hsv_lb, self.hsv_ub)
 		if not self.binary_image is None:
-			_, self.contours,_ = cv2.findContours(self.binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) #we do contours to make sure subsequent points are neighbors -
+			self.contours,_ = cv2.findContours(self.binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) #we do contours to make sure subsequent points are neighbors -
 			# CV_RETR_EXTERNAL because we only want one contour, and CV_CHAIN_APPROX_NONE b/c we don't want to compress by finding extrema, we want all the points
 
 			self.longest_contour_index, self.longest_contour = max(enumerate(self.contours), key=(lambda x: len(x[1])))

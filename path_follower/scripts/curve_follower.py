@@ -55,7 +55,7 @@ class Follower(object):
 			print self.moves.linear.x, self.moves.angular.z
 			self.pub.publish(self.moves)
 			self.pos = [msg.pose.position.x,msg.pose.position.y,msg.pose.orientation.z]
-			if self.pos[0] < 0 or self.pos[1] < 0 or self.pos[0] > 4 or self.pos[1] > 4:
+			if self.pos[0] < -0.5 or self.pos[1] < -0.5 or self.pos[0] > 4 or self.pos[1] > 4:
 				self.driving = False
 				self.waiting = True
 				self.fucking_stop()
@@ -64,32 +64,37 @@ class Follower(object):
 		"""function that executes analyzing state"""
 		self.cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
 		self.fit.find_whiteboard(self.cv_image)
+
 		if not self.analyzing:
 			return
 		try:
 			self.ellipses = self.fit.find_ellipse()
+			# if not self.fit.binary_image is None:
+			# 	plt.cla()
+			# 	chunk = 1
+			# 	np.save(outfile, self.fit.curve_chunks[chunk])
+			# 	approx_ellipse = Ellipse(self.fit.curve_chunks[chunk][:,0], self.fit.curve_chunks[chunk][:,1])
+			# 	approx_ellipse.print_properties()
+			# 	plt.plot(self.fit.line_points[:,0],self.fit.line_points[:,1])
+			# 	plt.plot(self.fit.curve_chunks[chunk][:,0],self.fit.curve_chunks[chunk][:,1],'r')
+			# 	plt.pause(.1)
 			#self.ellipses = self.fit.find_multiple_ellipses()
 			
 		except TypeError as e:
 			print e
 		else:
-<<<<<<< HEAD
 			print 'ELLIPSE!'
 			self.start_time = rospy.Time.now()
 			self.has_analyzed = True
 		 	self.analyzing = False
 		 	self.waiting = True
-		
-=======
-			self.analyzing = False
-			self.driving = True
->>>>>>> 436601230b8a59f85f3d6f7f6755c7ff5ce42606
 
 	def wait(self,msg):
 		"""function that executes waiting state"""
 		# pass
-		self.time = rospy.get_time()
-		self.STAR_time = msg.pose.header.stamp.sec  
+		self.time = rospy.rospy.Time.now()
+		self.STAR_time = msg.header.stamp.sec  
+		print self.STAR_time
 		if self.time - self.STAR_time > 3:
 			self.analyzing = True
 
@@ -112,6 +117,10 @@ class Follower(object):
 		# if self.waiting == True:
 		# 	self.wait()
 		sys.exit(0)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4c27491326127af7aff28c24b0f5ca22bc0278fa
 
 	def run(self):
 		rospy.on_shutdown(self.fucking_stop)
@@ -122,29 +131,16 @@ class Follower(object):
 			elif self.analyzing:
 				#self.analyze
 				print 'analyzing!'
-			else:
+			elif self.waiting:
 				#self.wait
 				print 'waiting!'
+				# print self.STAR_time
+			else:
+				print 'invalid state!'
 			self.fit.update_img()
 			#self.fit.plot_curve()
 			self.r.sleep()
 
-	# def run(self):
-	# 	#rospy.on_shutdown(self.fucking_stop)
-	# 	while not rospy.is_shutdown():
-	# 		if self.driving:
-	# 		if self.state == Follower.DRIVE:
- #                self.state = self.drive()
- #            elif self.state == Follower.ANALYZE:
- #                self.state = self.analyze()
- #            # elif self.state == Follower.STOPPED:
- #            #     self.state = self.fucking_stop()
- #            elif self.state == Follower.WAITING:
- #                self.state = self.wait()
- #            else:
- #                print "invalid state!!!" # note this shouldn't happen
-	# 		self.fit.update_img()
-	# 		self.r.sleep()
 
 if __name__ == '__main__':
 	follower = Follower()
