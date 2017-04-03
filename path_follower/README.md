@@ -1,4 +1,5 @@
     What was the goal of your project?
+    Our goal was to have the robot analyze a curved path from an image and replicate it by moving along it in real life.
     
     
     Describe how your system works.  Make sure to include the basic components and algorithms that comprise your project.
@@ -8,7 +9,9 @@
     
     
     How did you structure your code?
-    
+    We structured our code in two python scripts. We organized fit_curve.py into two classes, Ellipses and Fit_Curve, that were imported into curve_follower.py, used a finite state controller class Follower that subscribed and published messages to the robot. Follower was made up of the state objects wait, analyze, and drive that run based on which state of the robot, waiting, analyzing, or driving, is currently True. If the bump sensor is triggered, the robot goes out of bounds, or the program is exited, an emergency stop function fucking_stop ran to stop and shutdown the robot
+
+    The Fit_Curve objects were called in the analyze state function in curve_follower's main class Follower to process camera images into contours that were cleaned up to leave one continuous array of points along a curve to pass into the Ellipse class. The objects of Ellipse fit the points to an ellipse. That Ellipse object get_velocities was called in the drive state function in curve_follower to calculate the linear and angular velocities needed to drive the path of the curve.
     
     What if any challenges did you face along the way?
     
