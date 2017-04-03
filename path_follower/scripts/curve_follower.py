@@ -27,9 +27,8 @@ class Follower(object):
 		rospy.init_node('curve_follower')
 		# self.arg = arg
 		self.driving = False
-		self.waiting = False
-		self.analyzing = True
-		self.bumped = True
+		# self.waiting = True
+		self.analyzing = False
 
 		self.moves = Twist(linear=Vector3(x = 0.0), angular=Vector3(z = 0.0)) #velocities to publish
 		self.r = rospy.Rate(1) #Execute at 10 Hz
@@ -38,20 +37,22 @@ class Follower(object):
 		
 		rospy.Subscriber('/bump', Bump, self.bump)
 		rospy.Subscriber('/camera/image_raw', Image, self.analyze)
+		rospy.Subscriber('/STAR_pose', Pose, self.wait)
 		rospy.Subscriber('/STAR_pose', Pose, self.drive)
 		
 		self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10) #publish neato velocities
 		
 	def drive(self,msg):
 		"""function that executes driving state"""
-		self.driving = True
 		# self.max_min = [4.5,-1]
-		self.moves.linear.x,self.moves.angular.z = self.fit.approx_ellipse.get_velocities(i)
-		self.pub.publish(self.moves)
-		self.pos = [msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.orientation.z]
-		if self.pos[0] < 0 or self.pos[1] < 0 or self.pos[0] > 4 or self.pos[1] < 4:
-			self.waiting = True
-			self.fucking_stop()
+		if self.ellipses is not None:
+			self.moves.linear.x,self.moves.angular.z = self.fit.approx_ellipse.get_velocities(i)
+			self.pub.publish(self.moves)
+			self.pos = [msg.pose.pose.position.x,msg.pose.pose.position.y,msg.pose.pose.orientation.z]
+			if self.pos[0] < 0 or self.pos[1] < 0 or self.pos[0] > 4 or self.pos[1] < 4:
+				self.driving = False
+				# self.waiting = True
+				self.fucking_stop()
 
 	def analyze(self,msg):
 		"""function that executes analyzing state"""
@@ -63,29 +64,26 @@ class Follower(object):
 			self.ellipses = self.fit.find_multiple_ellipses()
 		except ValueError as e:
 			print e
-		# else:
-		# 	self.analyzing = False
-		# 	self.driving = True
-		plt.ion()
-		self.fit.plot_curve()
+		else:
+			self.analyzing = False
+			self.driving = True
 
-	def wait(self):
+	def wait(self,msg):
 		"""function that executes waiting state"""
-		pass
-		# self.time = header.stamp.sec
-		# self.STAR_time =  
+		# pass
+		self.time = rospy.get_time()
+		self.STAR_time = msg.pose.header.stamp.sec  
+		if self.time - self.STAR_time > 3:
+			self.analyzing = True
 
 		# if "time passed since last signal" > "1 minute":
 					
 
 	def bump(self, msg):
-		self.state_pub.publish(String(self.state))
 		if (msg.leftFront or
 			msg.rightFront or
 			msg.rightSide or
 			msg.leftSide):
-			self.bumped = True
-			self.wait = True
 			self.fucking_stop()
 
 	def fucking_stop(self):
@@ -94,9 +92,7 @@ class Follower(object):
 		self.moves.linear.x = 0.0
 		self.moves.angular.z = 0.0
 		self.pub.publish(self.moves)
-		# if self.waiting == True:
-		# 	self.wait()
-		self.wait()
+		# self.waiting = True
 
 	def run(self):
 		# rospy.on_shutdown(self.fucking_stop)
