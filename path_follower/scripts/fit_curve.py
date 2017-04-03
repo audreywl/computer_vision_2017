@@ -9,12 +9,14 @@ import matplotlib.pyplot as plt
 from tempfile import TemporaryFile
 
 outfile = TemporaryFile()
+plt.ion()
 
 """ This is a script takes information from open_cv and does parameterizing
 math to follow the path """
 
 class Ellipse(object):
-	"""Finds and minimizes error in a set of points to create an arc that best fits them. has functions to return qualities about the ellipse. Credit to: http://nicky.vanforeest.com/misc/fitEllipse/fitEllipse.html"""
+	"""Finds and minimizes error in a set of points to create an arc that best fits them. has functions to return qualities about the ellipse.
+	Credit to: http://nicky.vanforeest.com/misc/fitEllipse/fitEllipse.html"""
 	def __init__(self, x, y):
 		self.x = x
 		self.y = y
@@ -168,7 +170,12 @@ class FitCurve(object):
 
 
 	def find_ellipse(self):
-		self.approx_ellipse = Ellipse(self.line_points[:,0],self.line_points[:,1])
+		xran = max(self.line_points[:,0]) - min(self.line_points[:,0])
+		yran = max(self.line_points[:,1]) - min(self.line_points[:,1])
+		xratio = xran/2
+		yratio = yran/2
+
+		self.approx_ellipse = Ellipse((self.line_points[:,0]-min(self.line_points[:,0]))/xratio,(self.line_points[:,1]-min(self.line_points[:,1]))/yratio)
 		self.approx_ellipse.check_validity()
 
 
