@@ -6,6 +6,7 @@
 Our goal was to have a neato robot analyze a curved path in a human-drawn image and replicate it by moving along the path in real life.
 
 ## What Works
+The robot successfully analyzes and draws the contours of a curve placed in front of it and then tries to fit the contours to an ellipse. The ellipse parameters are used to find the linear and angular velocity of the robot at a given time so it will draw the path. Once the robot has found an elliptical path to follow, it waits until it sees an AprilTag on the ceiling (i.e. the camera has been uncovered) and then drives the path. If bumped, the program shuts down. The robot doesn't do a great job of drawing the path correctly, which is probably due to a time or scaling issue, but it does drive a path.
 
 
 ## Design Decision/Challenges
@@ -19,7 +20,7 @@ The Fit_Curve objects were called in the analyze state function in curve_followe
 
 
 ## What would you do to improve your project if you had more time?
-If we had more time, we would debug more around what makes the ellipse fitting so bad, and maybe choose a different equation fitting algorithm
+If we had more time, we would debug more around what makes the ellipse fitting so bad, and maybe choose a different equation fitting algorithm. We would debug more to figure out why the driven path doesn't look right. 
 
 ## Lessons Learned
 
