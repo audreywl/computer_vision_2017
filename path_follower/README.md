@@ -5,6 +5,7 @@
     Describe how your system works.  Make sure to include the basic components and algorithms that comprise your project.
     
     
+    
     Describe a design decision you had to make when working on your project and what you ultimately did (and why)? These design decisions could be particular choices for how you implemented some part of an algorithm or perhaps a decision regarding which of two external packages to use in your project.
     
     
